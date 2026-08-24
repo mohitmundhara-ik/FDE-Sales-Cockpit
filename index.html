@@ -603,8 +603,8 @@ ul.tight li{font-size:13px;margin-bottom:5px;color:var(--body)}
    <span class="nav-sep" aria-hidden="true"></span>
    <a href="#category">Category</a>
    <a href="#market">Market</a>
-   <a href="#jobs">Roles</a>
-   <a href="#landscape">Employers</a>
+   <a href="#jobs">Job directory</a>
+   <a href="#landscape">Employer directory</a>
    <a href="#ladder">Ladder</a>
    <a href="#interview">Rounds</a>
    <a href="#loops">Loops</a>
@@ -726,7 +726,7 @@ ul.tight li{font-size:13px;margin-bottom:5px;color:var(--body)}
 <hr class="rule">
 <section id="jobs">
  <p class="eyebrow">Live role evidence</p>
- <h2>Job explorer</h2>
+ <h2>Job directory</h2>
  <p class="sub">Every posting from the August 2026 LinkedIn India scrape, with the stack each one names. Filter to their level and city and send them three real postings - it converts better than any statistic.</p>
  <div class="jf">
   <select id="jband" aria-label="Scope"><option value="">Core FDE + adjacent</option><option>Core FDE</option><option>Adjacent</option></select>
@@ -1860,6 +1860,7 @@ const CONCEPT = {
               'compensation','comp','money','earn','earning','hike','increment','raise','offer','band',
               'stipend','remuneration','worth it financially'],
   market:    ['job','jobs','opening','openings','vacancy','vacancies','demand','hiring','hire','hires',
+              'directory','list','listing','listings','postings','posting','where can i see','show me jobs',
               'market','opportunity','opportunities','scope','how many','availability','roles available',
               'is there demand','future','saturated'],
   fit:       ['fit','fits','suitable','suit','eligible','eligibility','qualify','background','transition',
@@ -2278,7 +2279,7 @@ const RESPOND = [
       <div><div class="k">Adjacent, unique</div><div class="v">${c.uniq.Adjacent.toLocaleString()}</div><div class="n">after de-duplication</div></div></div>
     <p><b>Say it this way.</b> Roughly 250&ndash;270 roles carry the exact title at any time. But the same work is hired as Applied AI Engineer, Solutions Engineer, Customer Engineer, AI Solution Architect and FDSE - adjacent roles outnumber FDE-titled ones about three and a half to one. Searching the title alone shows a lead a fraction of their real market.</p>
     <div class="critbox" style="margin:9px 0 0">The 2,326-ID index is Core plus adjacent <b>discovery</b>. Never quote it as open FDE headcount.</div>`,
-   jumps:[['market','Requirement evidence'],['jobs','Live role explorer'],['landscape','Who is hiring']]};
+   jumps:[['jobs','Open the job directory'],['landscape','Employer directory'],['market','Requirement evidence']]};
  }},
 
 /* --- interview --- */
@@ -2553,7 +2554,17 @@ const RX={
 function analyseResume(text){
   const raw=text.replace(/\r/g,'');
   const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
-  const bullets=lines.filter(l=>l.length>25 && !/^[A-Z\s&,.()/-]{0,40}$/.test(l)).slice(0,120);
+  /* A line like "Senior Software Engineer, HDFC Bank, 2019-2026" is a header, not an
+     achievement. Reframing it produces nonsense, so drop anything carrying a date
+     range, and anything with no action verb in it at all. */
+  const RANGE=/\b(19|20)\d{2}\s*[-\u2013to]+\s*((19|20)\d{2}|present|current|date)\b/i;
+  const VERB=/\b(built|build|led|lead|drove|drive|shipped|ship|delivered|deliver|owned|own|designed|design|developed|develop|created|create|migrated|migrate|deployed|deploy|reduced|reduce|improved|improve|increased|automated|automate|implemented|implement|managed|manage|architected|scaled|scale|launched|launch|integrated|integrate|optimis|optimiz|worked|responsible|involved|helped|assisted|participated|part of|mentor|maintain|support)\b/i;
+  const bullets=lines.filter(l=>
+      l.length>25 &&
+      !/^[A-Z\s&,.()/-]{0,40}$/.test(l) &&
+      !RANGE.test(l) &&
+      VERB.test(l)
+    ).slice(0,120);
   const low=raw.toLowerCase();
 
   /* block signal, mapped onto the cockpit's own eight blocks */
@@ -2574,7 +2585,20 @@ function analyseResume(text){
     return (low.match(new RegExp(r.source,'gi'))||[]).length;
   };
 
+  let years=null;
   const ym=low.match(RX.years);
+  if(ym) years=+ym[1];
+  else {
+    /* fall back to the span of the employment dates in the document */
+    const yrs=[...raw.matchAll(/\b(19|20)\d{2}\b/g)].map(m=>+m[0])
+      .filter(y=>y>=1980 && y<=new Date().getFullYear());
+    const present=/\b(present|current|till date|to date)\b/i.test(low);
+    if(yrs.length){
+      const lo=Math.min(...yrs), hi=present?new Date().getFullYear():Math.max(...yrs);
+      const span=hi-lo;
+      if(span>0 && span<=45) years=span;
+    }
+  }
   const stacks=[];
   Object.keys(buildEntities().stacks).forEach(k=>{
     if(k.length>2 && new RegExp('(^|[^a-z])'+k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^a-z]|$)').test(low))
@@ -2588,7 +2612,7 @@ function analyseResume(text){
     noOutcome:bullets.filter(b=>!RX.outcome.test(b)).length
   };
 
-  return {bullets,sig,hitCount,years:ym?+ym[1]:null,
+  return {bullets,sig,hitCount,years,
           stacks:[...new Set(stacks)].slice(0,14),flags,len:bullets.length};
 }
 
@@ -2737,9 +2761,14 @@ function buildResume(){
   if(t.trim().length<120){ $('#st-out').innerHTML='<div class="critbox">Paste a bit more - at least a few experience bullets, or the analysis will be noise.</div>'; return; }
   const dom=$('#r-dom').value, track=$('#r-track').value;
   const A=analyseResume(t);
+  if(A.years==null){                       /* use whatever the PA already set above */
+    const mid={'0-2':1,'3-4':3,'5-7':6,'8-10':9,'11-15':13,'15+':16};
+    A.years=mid[S.band]!=null?mid[S.band]:null;
+    A.yearsInferred=true;
+  }
   const extra=MODEL.blocks.map(([k])=>k).filter(k=>A.hitCount(k)>=2);
   logEvent('resume',`${DOM[dom].short} · ${A.len} bullets`);
-  renderRoadmap({dom,yrs:A.years,track,city:'',goal:'realistic',extra},A);
+  renderRoadmap({dom,yrs:A.years,yrsInferred:!!A.yearsInferred,track,city:'',goal:'realistic',extra},A);
 }
 
 /* --- shared output --- */
@@ -2777,7 +2806,7 @@ function renderRoadmap(cfg,A){
     <div class="statrow" style="margin:0 0 14px">
       <div><div class="k">Holds today</div><div class="v">${R.total}<em>/100</em></div><div class="n">${esc(d.short)} baseline${cfg.extra&&cfg.extra.length?', adjusted':''}</div></div>
       <div><div class="k">After the program</div><div class="v good">${R.after}</div><div class="n">modelled over 23 weeks</div></div>
-      <div><div class="k">Target rung</div><div class="v">${esc(R.rung||'-')}</div><div class="n">${cfg.yrs!=null?cfg.yrs+' yrs · '+(cfg.track==='mgr'?'manager':'IC'):'set years to place them'}</div></div>
+      <div><div class="k">Target rung</div><div class="v">${esc(R.rung||'-')}</div><div class="n">${cfg.yrs!=null?cfg.yrs+' yrs'+(cfg.yrsInferred?' (from the bar above)':'')+' · '+(cfg.track==='mgr'?'manager':'IC'):'set years to place them'}</div></div>
       <div><div class="k">Reachable roles</div><div class="v">${(()=>{const c=JOBS.agg['Core FDE'][R.rung],a=JOBS.agg['Adjacent'][R.rung];return ((c?c.n:0)+(a?a.n:0)).toLocaleString();})()}</div><div class="n">at that rung, Core + adjacent</div></div>
     </div>
 
