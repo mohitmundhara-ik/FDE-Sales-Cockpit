@@ -1,0 +1,7 @@
+{
+  "name": "fde-sales-cockpit",
+  "private": true,
+  "version": "5.0.0",
+  "description": "FDE Sales Cockpit, gated to Interview Kickstart accounts",
+  "devDependencies": { "typescript": "^5.4.0", "@types/node": "^20.11.0" }
+}
