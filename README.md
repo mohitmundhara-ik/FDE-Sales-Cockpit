@@ -20,6 +20,12 @@ HTML is never sent to an unauthenticated browser.
 - A 24-hour signed, HttpOnly session cookie. The browser cannot read or forge it.
 - Edge middleware in front of **every** path, so there is no unprotected route.
 
+## If you see "four environment variables to set"
+
+That page means the gate is installed and working - it refused to serve the cockpit
+because it cannot verify anyone yet. Set the four variables below and **redeploy**;
+Vercel does not apply new environment variables to an existing deployment.
+
 ## Deploy
 
 1. **Google Cloud Console** - APIs & Services - Credentials - Create OAuth client ID

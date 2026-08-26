@@ -2,7 +2,13 @@
    hd is a hint, not a control - the callback re-checks the domain server-side. */
 export const config = { runtime: 'edge' };
 
+const notConfigured = () => new Response(
+  JSON.stringify({ ok: false, error: 'NOT_CONFIGURED',
+    detail: 'Set SESSION_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and ALLOWED_DOMAINS in Vercel, then redeploy.' }),
+  { status: 503, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
+
 export default async function handler(req: Request) {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.SESSION_SECRET) return notConfigured();
   const url = new URL(req.url);
   const next = url.searchParams.get('next') || '/';
   const state = crypto.randomUUID();

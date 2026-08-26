@@ -17,7 +17,13 @@ const deny = (msg: string, detail: string) =>
      <p style="margin-top:14px"><a href="/api/auth/login">Try a different account</a></p></div>`,
     { status: 403, headers: { 'content-type': 'text/html; charset=utf-8' } });
 
+const notConfigured = () => new Response(
+  JSON.stringify({ ok: false, error: 'NOT_CONFIGURED',
+    detail: 'Set SESSION_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and ALLOWED_DOMAINS in Vercel, then redeploy.' }),
+  { status: 503, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
+
 export default async function handler(req: Request) {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.SESSION_SECRET) return notConfigured();
   const url = new URL(req.url);
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
