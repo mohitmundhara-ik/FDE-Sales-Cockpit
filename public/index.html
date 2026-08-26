@@ -552,6 +552,19 @@ section.collapsed:hover h2{opacity:1}
  text-decoration-color:rgba(168,50,47,.35)}
 @media(max-width:760px){.a-urg{grid-template-columns:1fr}.a-scan span{width:52px}}
 
+/* ---------- handover block ---------- */
+.st-give{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:20px;
+ background:linear-gradient(135deg,#071630,#0A1F44 55%,#123A66);border-radius:var(--r);
+ padding:20px 24px;color:#E8EFF7}
+.st-give-t{flex:1;min-width:280px}
+.st-give-t b{display:block;font-size:16px;color:#fff;margin-bottom:5px}
+.st-give-t span{font-size:12.8px;color:#B9CBE0;line-height:1.6;display:block;max-width:66ch}
+.st-give-b{display:flex;gap:8px;flex-wrap:wrap;flex:none}
+.st-give .st-btn{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22);color:#E8EFF7}
+.st-give .st-btn:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.4);color:#fff}
+.st-give .st-btn.primary{background:#fff;color:var(--navy);border-color:#fff}
+.st-give .st-btn.primary:hover{background:#E8EFF7;color:var(--navy)}
+
 /* ===== hiring landscape - restyled into the light system ===== */
 #hl-root{font-family:var(--sans)}
 #hl-root *{box-sizing:border-box}
@@ -669,6 +682,7 @@ section.collapsed:hover h2{opacity:1}
   <a class="mark" href="#briefing"><b>FDE Sales Cockpit</b><span>Interview Kickstart · India</span></a>
   <nav aria-label="Sections">
    <a href="#briefing">Briefing</a>
+   <a href="#studio">Roadmap</a>
    <a href="#profile">Fit map</a>
    <a href="#answers">Answers</a>
    <span class="nav-sep" aria-hidden="true"></span>
@@ -680,7 +694,6 @@ section.collapsed:hover h2{opacity:1}
    <a href="#interview">Rounds</a>
    <a href="#loops">Loops</a>
    <a href="#portfolio">Proof</a>
-   <a href="#studio">Studio</a>
    <a href="#comp">Pay</a>
    <span class="nav-sep" aria-hidden="true"></span>
    <a href="#competitors">Competitors</a>
@@ -746,6 +759,15 @@ section.collapsed:hover h2{opacity:1}
 
  <div id="brief-body"></div>
 </section>
+
+<hr class="rule">
+<section id="studio">
+ <p class="eyebrow">Lead roadmap</p>
+ <h2>Build the roadmap you hand them</h2>
+ <p class="sub">Two ways in, one output. Map a profile in six taps when they have no resume ready, or paste what they have today and reframe it. Both produce the same 23-week roadmap, ordered by what it actually fixes for that person.</p>
+ <div id="studio-root"></div>
+</section>
+
 
 <hr class="rule">
 <section id="profile"></section>
@@ -953,14 +975,6 @@ section.collapsed:hover h2{opacity:1}
  <p class="sub">Five to seven rounds depending on the company. Switch between the IC and manager loop - they are different processes, not the same one with a different title.</p>
  <div class="tog" id="loopTog" role="group" aria-label="Loop track"><button data-v="ic" class="on">IC loop</button><button data-v="mgr">Manager loop</button></div>
  <div id="loop-body"></div>
-</section>
-
-<hr class="rule">
-<section id="studio">
- <p class="eyebrow">Lead studio</p>
- <h2>Personalise it for the lead in front of you</h2>
- <p class="sub">Two ways in, one output. Map a profile in six taps when they have no resume ready, or paste what they have today and reframe it. Both produce the same 23-week roadmap, ordered by what it actually fixes for that person.</p>
- <div id="studio-root"></div>
 </section>
 
 <hr class="rule">
@@ -2804,7 +2818,7 @@ function studioRender(){
           <h3>Sign in to this device</h3>
           <p>The studio keeps a local record of what you build for which lead, and signs you out automatically after ${SESSION_HOURS} hours.</p>
           <div class="st-fields">
-            <label>Your name<input id="si-name" type="text" autocomplete="name" placeholder="Gagandeep K"></label>
+            <label>Your name<input id="si-name" type="text" autocomplete="name" placeholder="Your full name"></label>
             <label>Work email<input id="si-email" type="email" autocomplete="email" placeholder="you@interviewkickstart.com"></label>
           </div>
           <div class="st-err" id="si-err"></div>
@@ -2852,6 +2866,7 @@ function studioMap(){
       <label>Track
         <select id="m-track"><option value="ic"${p.track==='ic'?' selected':''}>IC - wants to build</option>
           <option value="mgr"${p.track==='mgr'?' selected':''}>Manager - leads, still codes</option></select></label>
+      <label>Their name <input id="lead-name" type="text" value="${esc(p.lead||'')}" placeholder="For the roadmap you hand over"></label>
       <label>City <input id="m-city" type="text" value="${esc(p.city||'')}" placeholder="Bengaluru"></label>
       <label>What they are aiming at
         <select id="m-goal">
@@ -2869,8 +2884,9 @@ function studioMap(){
 function buildMap(){
   const dom=$('#m-dom').value, yrs=+$('#m-yrs').value||0, track=$('#m-track').value,
         city=$('#m-city').value.trim(), goal=$('#m-goal').value,
+        lead=($('#lead-name')&&$('#lead-name').value||'').trim(),
         extra=$$('.st-check input:checked').map(i=>i.value);
-  sSet(PKEY,{dom,yrs,track,extra,city,goal});
+  sSet(PKEY,{dom,yrs,track,extra,city,goal,lead});
   logEvent('roadmap',`${DOM[dom].short} · ${yrs}y · ${track}`);
   renderRoadmap({dom,yrs,track,city,goal,extra},null);
 }
@@ -2884,6 +2900,7 @@ function studioResume(){
         <select id="r-dom">${Object.entries(DOM).sort((a,b)=>a[1].order-b[1].order)
           .map(([k,d])=>`<option value="${k}"${k===S.dom?' selected':''}>${esc(d.name)}</option>`).join('')}</select></label>
       <label>Track <select id="r-track"><option value="ic">IC</option><option value="mgr">Manager</option></select></label>
+      <label>Their name <input id="lead-name" type="text" placeholder="For the roadmap you hand over"></label>
     </div>
     <textarea id="r-text" class="st-ta" placeholder="Paste the resume text here - experience bullets are what matter, the header is not needed."></textarea>
     <button class="st-btn primary" type="button" onclick="buildResume()">Analyse and reframe</button>
@@ -2962,14 +2979,25 @@ function renderRoadmap(cfg,A){
     lateral:'An adjacent title inside their current employer is the lowest-risk move and the fastest. Their existing domain knowledge is worth more there than anywhere else.'}[cfg.goal];
   x+=`<div class="goodbox"><b>Given what they are aiming at.</b> ${esc(goalLine)}</div>
     <div class="warnbox"><b>What not to promise.</b> This roadmap models skill points, not outcomes. No placement, salary or readiness guarantee attaches to it, and the point totals are a planning aid rather than a score anyone is graded on.</div>
+    <div class="st-give">
+      <div class="st-give-t"><b>Give this to the lead</b>
+        <span>A designed roadmap in their name, built from real postings at their level. The
+        highest-converting technique in the enrolment data was showing one of these on the call.
+        It carries no internal material, no commercial terms and no promise.</span></div>
+      <div class="st-give-b">
+        <button class="st-btn primary" type="button" onclick="previewArtifact()">Open the roadmap</button>
+        <button class="st-btn" type="button" onclick="downloadArtifact()">Download to send</button>
+      </div>
+    </div>
     <div class="st-actions">
-      <button class="st-btn" type="button" onclick="copyPlan()">Copy as text</button>
-      <button class="st-btn" type="button" onclick="downloadPlan()">Download .md</button>
+      <button class="st-btn" type="button" onclick="copyPlan()">Copy notes as text</button>
+      <button class="st-btn" type="button" onclick="downloadPlan()">Download notes .md</button>
       ${secLink('profile','Full fit map')}${secLink('ladder','Career ladder')}${secLink('loops','Employer loops')}
     </div>`;
 
   $('#st-out').innerHTML=x;
   window.__plan=planText(cfg,R,top,A);
+  window.__artifactCfg={cfg,A};
 }
 
 function planText(cfg,R,top,A){
@@ -3036,6 +3064,538 @@ function exportLog(){
   showToast('Log exported');
 }
 function clearLog(){ if(confirm('Clear the local activity log? This cannot be undone.')){ sDel(LKEY); renderLog(); } }
+
+/* =====================================================================
+   THE ROADMAP ARTIFACT
+   The single highest-impact technique in the 26-lead enrolment data was a
+   personalised career roadmap built on the call: current state, milestones,
+   target role, target companies, compensation trajectory - shared visually.
+   One lead committed on the same call after seeing one.
+
+   This builds that, as a standalone HTML file the PA hands over. It is
+   lead-facing, so it carries none of the cockpit's internal material: no
+   battle cards, no guardrails, no call analysis. And no commercial terms,
+   no placement promise, no invented number.
+   ===================================================================== */
+
+function artifactData(cfg, A){
+  const d = DOM[cfg.dom];
+  const h = MODEL.held[cfg.dom], a = MODEL.after[cfg.dom];
+  const mx = {}; MODEL.blocks.forEach(([k,,m]) => mx[k]=m);
+  const held = Object.assign({}, h);
+  (cfg.extra||[]).forEach(k=>{ if(held[k]!=null) held[k]=Math.min(mx[k], held[k]+Math.round(mx[k]*0.12)); });
+
+  const yrs  = cfg.yrs;
+  const rung = yrs==null ? 'Senior'
+             : yrs<=2 ? 'Associate' : yrs<=5 ? 'Mid' : yrs<=8 ? 'Senior' : 'Lead / Principal';
+  const core = JOBS.agg['Core FDE'][rung], adj = JOBS.agg['Adjacent'][rung];
+
+  /* real postings at their rung, their city first - never invented */
+  let pool = JOBS.jobs.filter(j => j.lv===rung);
+  if(cfg.city){
+    const c = cfg.city.toLowerCase();
+    const local = pool.filter(j => (j.city||'').toLowerCase().includes(c));
+    if(local.length>=4) pool = local;
+  }
+  const byCo = {};
+  pool.forEach(j => { (byCo[j.c] = byCo[j.c] || []).push(j); });
+  const targets = Object.entries(byCo)
+    .sort((x,y)=> y[1].length - x[1].length)
+    .slice(0,12)
+    .map(([co,rows]) => ({co, n:rows.length, tier:rows[0].ct, city:rows[0].city,
+                          stack:[...new Set(rows.flatMap(r=>r.s))].slice(0,5)}));
+
+  const sample = pool.slice(0,6).map(j=>({t:j.t, c:j.c, city:j.city, u:j.u, s:j.s.slice(0,4)}));
+
+  const gaps = MODEL.blocks.map(([k,nm,m,desc]) => ({
+    k, nm, m, desc, have: held[k], after: a[k], add: a[k]-held[k], left: m-a[k]
+  }));
+  const ordered = gaps.slice().sort((x,y)=> y.add - x.add);
+
+  /* what the market asks for at this rung, from the scrape */
+  const src = core && core.n>=20 ? core : (adj || core);
+  const demand = MODEL.blocks.map(([k,nm]) => ({nm, pct: src ? src.blocks[k] : 0}))
+                   .sort((x,y)=> y.pct - x.pct);
+
+  return {d, held, after:a, mx, yrs, rung, core, adj, targets, sample, gaps, ordered, demand,
+          total: Object.values(held).reduce((x,y)=>x+y,0),
+          totalAfter: Object.values(a).reduce((x,y)=>x+y,0),
+          resume: A || null, cfg};
+}
+
+const HUE_A = ['#2A7AB0','#C4753A','#127A4B','#C9A227','#B4568C','#2E7D32','#5B3FA8','#B4433F'];
+
+
+/* ---------- visuals: hand-built inline SVG, no libraries ----------
+   The file has to stay standalone and openable offline, so every chart
+   is computed here and emitted as raw SVG. */
+
+/* Radar: eight axes, outer ring = what the role demands.
+   Blue = what they hold today. Green = after the programme. */
+function svgRadar(D){
+  const R=104, cx=195, cy=150, n=MODEL.blocks.length;
+  const pt=(i,f)=>{
+    const a=-Math.PI/2 + i*2*Math.PI/n, r=R*Math.max(f,0.02);
+    return [cx+r*Math.cos(a), cy+r*Math.sin(a)];
+  };
+  const poly=f=>MODEL.blocks.map((b,i)=>pt(i,f(b[0],b[2])).map(v=>v.toFixed(1)).join(',')).join(' ');
+  const grid=[0.25,0.5,0.75,1].map(g=>
+    `<polygon points="${MODEL.blocks.map((b,i)=>pt(i,g).map(v=>v.toFixed(1)).join(',')).join(' ')}"
+      fill="none" stroke="#D2DEEA" stroke-width="1"${g<1?' stroke-dasharray="2 3"':''}/>`).join('');
+  const spokes=MODEL.blocks.map((b,i)=>{
+    const [x,y]=pt(i,1);
+    return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#E3EAF2" stroke-width="1"/>`;
+  }).join('');
+  const labels=MODEL.blocks.map((b,i)=>{
+    const [x,y]=pt(i,1.22);
+    const anchor = Math.abs(x-cx)<12 ? 'middle' : (x>cx ? 'start' : 'end');
+    const words=b[1].split(' ');
+    const line2 = words.length>1 ? words.slice(1).join(' ') : '';
+    return `<text x="${x.toFixed(1)}" y="${(y+ (y<cy?-2:8)).toFixed(1)}" text-anchor="${anchor}"
+      font-size="9.5" font-weight="600" fill="#3d4c63">${esc(words[0])}
+      ${line2?`<tspan x="${x.toFixed(1)}" dy="11">${esc(line2)}</tspan>`:''}</text>`;
+  }).join('');
+  return `<svg viewBox="0 0 390 300" width="100%" height="auto" preserveAspectRatio="xMidYMid meet" role="img"
+    aria-label="Your eight skill blocks today against what the role requires">
+    ${grid}${spokes}
+    <polygon points="${poly((k,m)=>D.after[k]/m)}" fill="#127A4B" fill-opacity=".13"
+      stroke="#127A4B" stroke-width="1.6" stroke-dasharray="4 3"/>
+    <polygon points="${poly((k,m)=>D.held[k]/m)}" fill="#2A7AB0" fill-opacity=".26"
+      stroke="#2A7AB0" stroke-width="2"/>
+    ${MODEL.blocks.map((b,i)=>{const [x,y]=pt(i,D.held[b[0]]/b[2]);
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.8" fill="#2A7AB0"/>`;}).join('')}
+    ${labels}
+  </svg>`;
+}
+
+/* Ring: held / added / still open, out of 100 */
+function svgRing(D){
+  const r=58, C=2*Math.PI*r, held=D.total, add=D.totalAfter-D.total, open=100-D.totalAfter;
+  const seg=(v,off,col)=>`<circle cx="80" cy="80" r="${r}" fill="none" stroke="${col}"
+    stroke-width="17" stroke-dasharray="${(v/100*C).toFixed(1)} ${C.toFixed(1)}"
+    stroke-dashoffset="${(-off/100*C).toFixed(1)}" transform="rotate(-90 80 80)" stroke-linecap="butt"/>`;
+  return `<svg viewBox="0 0 160 160" width="160" height="160" style="flex:none" role="img"
+    aria-label="${held} of 100 points today, rising to ${D.totalAfter}">
+    <circle cx="80" cy="80" r="${r}" fill="none" stroke="#EDF1F6" stroke-width="17"/>
+    ${seg(held,0,'#2A7AB0')}${seg(add,held,'#127A4B')}
+    <text x="80" y="74" text-anchor="middle" font-size="30" font-weight="700"
+      fill="#0A1F44" letter-spacing="-1">${D.totalAfter}</text>
+    <text x="80" y="92" text-anchor="middle" font-size="10.5" fill="#7286a0">of 100 after</text>
+    <text x="80" y="107" text-anchor="middle" font-size="10.5" font-weight="600"
+      fill="#2A7AB0">${held} today</text>
+  </svg>`;
+}
+
+/* The 23 weeks as a timeline, with their own gap blocks pinned to the phase that closes them */
+function svgTimeline(D){
+  const W=840, H=132, L=14, TW=W-28;
+  const ph=[['AI engineering spine','W1-11',11,'#2A7AB0'],
+            ['AI pair coding','W12',1,'#5B3FA8'],
+            ['FDE spine','W13-17',5,'#127A4B'],
+            ['Interview preparation','W18-23',6,'#C4753A']];
+  let x=L, bars='';
+  const phX={};
+  ph.forEach(([nm,wk,n,c],i)=>{
+    const w=TW*n/23;
+    phX[i]=[x,w];
+    /* week 12 is one week wide, so its label would collide with the next phase.
+       Lift narrow-phase labels onto their own line. */
+    const narrow = w < 110;
+    const ly = narrow ? 22 : 36;
+    bars+=`<rect x="${x.toFixed(1)}" y="44" width="${(w-3).toFixed(1)}" height="30" rx="5" fill="${c}"/>
+      <text x="${(x+ (w<60?5:6)).toFixed(1)}" y="63" font-size="${w<60?9.5:10.5}"
+        font-weight="700" fill="#fff">${esc(wk)}</text>
+      <text x="${x.toFixed(1)}" y="${ly}" font-size="10" font-weight="600" fill="#3d4c63">${esc(nm)}</text>
+      ${narrow?`<line x1="${(x+1).toFixed(1)}" y1="${ly+4}" x2="${(x+1).toFixed(1)}" y2="42"
+        stroke="#C6D3E2" stroke-width="1"/>`:''}`;
+    x+=w;
+  });
+  /* pin the lead's three biggest gaps under the phase that moves them */
+  const phaseOf={aieng:0,evalq:0,dataint:0,prodeng:0,custcraft:2,soldesign:2,deployops:2,secgov:2};
+  const pins=D.ordered.filter(g=>g.add>0).slice(0,3).map((g,i)=>{
+    const p=phaseOf[g.k]!=null?phaseOf[g.k]:0, [px,pw]=phX[p];
+    const cxp=px+pw/2, y=92+i*13;
+    return `<line x1="${cxp.toFixed(1)}" y1="76" x2="${cxp.toFixed(1)}" y2="${y-4}" stroke="#B9C7D8" stroke-width="1" stroke-dasharray="2 2"/>
+      <text x="${cxp.toFixed(1)}" y="${y}" text-anchor="middle" font-size="10" fill="#3d4c63">
+        <tspan font-weight="700" fill="#127A4B">+${g.add}</tspan> ${esc(g.nm)}</text>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img"
+    aria-label="Twenty-three week timeline with your biggest gaps marked">
+    <text x="${L}" y="14" font-size="10" font-weight="700" fill="#7286a0" letter-spacing="1.2">WEEK 1</text>
+    <text x="${W-L}" y="14" text-anchor="end" font-size="10" font-weight="700" fill="#7286a0" letter-spacing="1.2">WEEK 23</text>
+    ${bars}${pins}
+  </svg>`;
+}
+
+/* Where they sit on the ladder, and where this lands them */
+function svgLadder(D){
+  const rungs=['Associate','Mid','Senior','Lead / Principal'];
+  const here=rungs.indexOf(D.rung);
+  const W=840,rw=190,gap=16;
+  return `<svg viewBox="0 0 ${W} 96" width="100%" height="96" role="img"
+    aria-label="Career rungs with your target level marked">
+    ${rungs.map((r,i)=>{
+      const x=14+i*(rw+gap), on=i===here;
+      const c=JOBS.agg['Core FDE'][r], a=JOBS.agg['Adjacent'][r];
+      const n=((c?c.n:0)+(a?a.n:0));
+      return `<rect x="${x}" y="20" width="${rw}" height="56" rx="9"
+        fill="${on?'#0A1F44':'#F5FAFD'}" stroke="${on?'#0A1F44':'#E3EAF2'}" stroke-width="1"/>
+        <text x="${x+14}" y="42" font-size="13" font-weight="700"
+          fill="${on?'#fff':'#7286a0'}">${esc(r)}</text>
+        <text x="${x+14}" y="60" font-size="10.5"
+          fill="${on?'#8FC4E8':'#93A5BC'}">${n.toLocaleString()} open roles</text>
+        ${on?`<text x="${x+rw-14}" y="42" text-anchor="end" font-size="9.5" font-weight="700"
+          fill="#8FC4E8" letter-spacing="1">YOU</text>`:''}`;
+    }).join('')}
+  </svg>`;
+}
+
+function buildArtifact(cfg, A, leadName){
+  const D = artifactData(cfg, A);
+  const name = (leadName||'').trim();
+  const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+  const pa = (session()||{}).name || '';
+
+  const wk = { aieng:'Weeks 1-11', evalq:'Weeks 8 and 17', dataint:'Weeks 2-7',
+    soldesign:'Weeks 14 and 22', custcraft:'Weeks 13-17', deployops:'Weeks 15-17',
+    secgov:'Weeks 16-17 and 23', prodeng:'Throughout, weeks 1-17' };
+
+  const pct = k => Math.round(D.held[k]/D.mx[k]*100);
+
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(name?name+' - ':'')}Forward Deployed Engineer roadmap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0A1F44;--ink:#0d1b2f;--body:#3d4c63;--muted:#7286a0;--acc:#2A7AB0;--acc-dk:#1F5E8A;
+ --pale:#EAF3FA;--pale2:#F5FAFD;--rule:#E3EAF2;--rule2:#D2DEEA;--good:#127A4B;--goodbg:#EEF8F2;
+ --warn:#8A5B00;--warnbg:#FFF9EC;--paper:#fff}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#F4F7FA;color:var(--ink);
+ font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.page{max-width:920px;margin:0 auto;background:var(--paper)}
+h1,h2,h3,h4{color:var(--navy);letter-spacing:-.022em;line-height:1.2}
+
+/* cover */
+.cover{background:linear-gradient(140deg,#071630 0%,#0A1F44 45%,#123A66 100%);color:#E8EFF7;
+ padding:64px 60px 56px;position:relative;overflow:hidden}
+.cover::after{content:"";position:absolute;inset:0;
+ background:radial-gradient(ellipse 60% 70% at 88% 15%,rgba(42,122,176,.42),transparent 62%)}
+.cover>*{position:relative;z-index:1}
+.brand{display:flex;align-items:center;gap:10px;font-size:11px;letter-spacing:.16em;
+ text-transform:uppercase;color:#8FC4E8;font-weight:700;margin-bottom:44px}
+.brand b{color:#fff;letter-spacing:.04em}
+.cover h1{color:#fff;font-size:44px;line-height:1.08;max-width:15ch;margin-bottom:16px}
+.cover .who{font-size:17px;color:#B9CBE0;max-width:56ch}
+.cover .who b{color:#fff}
+.cover .meta{margin-top:38px;padding-top:22px;border-top:1px solid rgba(255,255,255,.18);
+ display:flex;gap:38px;flex-wrap:wrap;font-size:12.5px;color:#93AAC6}
+.cover .meta b{display:block;color:#fff;font-size:15px;margin-top:2px;font-weight:600}
+.cover .meta b.pa{font-size:17px;font-weight:700;letter-spacing:-.01em}
+
+section{padding:44px 60px;border-bottom:1px solid var(--rule)}
+.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--acc);
+ font-weight:700;margin-bottom:9px}
+section h2{font-size:28px;margin-bottom:10px}
+.lede{color:var(--body);font-size:15.5px;max-width:70ch;margin-bottom:24px}
+
+/* the eight blocks */
+.blk{display:grid;grid-template-columns:186px 1fr 74px;gap:14px;align-items:center;margin-bottom:9px}
+.blk .nm{font-size:13px;text-align:right;color:var(--muted);line-height:1.3}
+.blk .nm b{display:block;color:var(--navy);font-size:13.5px;font-weight:650}
+.bar{height:26px;background:#EDF1F6;border-radius:6px;overflow:hidden;display:flex;position:relative}
+.bar i{height:100%;display:block}
+.bar .now{background:var(--acc)}
+.bar .add{background:var(--good);opacity:.82;margin-left:2px}
+.bar span{position:absolute;inset:0;display:flex;align-items:center;padding:0 10px;
+ font-size:11.5px;font-weight:650;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.18)}
+.blk .rt{font-size:12px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.key{display:flex;gap:22px;font-size:12.5px;color:var(--body);margin:14px 0 4px;flex-wrap:wrap}
+.key i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:7px;position:relative;top:1px}
+
+.reality{background:var(--pale);border:1px solid #DCEAF5;border-left:4px solid var(--acc);
+ border-radius:0 12px 12px 0;padding:18px 22px;margin-bottom:24px}
+.reality b{display:block;font-size:15.5px;color:var(--navy);margin-bottom:8px}
+.reality p{font-size:14px;color:var(--body);margin:0 0 9px;line-height:1.62}
+.reality p:last-child{margin-bottom:0}
+.viz{display:grid;grid-template-columns:390px 1fr;gap:26px;align-items:center;
+ background:var(--pale2);border:1px solid var(--rule);border-radius:12px;padding:22px 26px;margin-bottom:26px}
+.viz-radar{display:flex;flex-direction:column;align-items:center}
+.viz-radar svg{width:100%;max-width:390px;display:block}
+.viz-cap{display:flex;flex-direction:column;gap:5px;margin-top:6px;font-size:11px;color:var(--body)}
+.viz-cap i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:7px;position:relative;top:1px}
+.viz-ring{display:flex;gap:22px;align-items:center}
+.viz-ring p{font-size:14px;color:var(--body);margin:0}
+.viz-ring p b{color:var(--navy)}
+.viz-wide{background:var(--pale2);border:1px solid var(--rule);border-radius:12px;
+ padding:16px 12px;margin-bottom:22px;overflow-x:auto}
+.viz-wide svg{min-width:720px}
+@media(max-width:760px){
+ .viz{grid-template-columns:1fr;gap:20px}
+ .viz-ring{flex-direction:column;text-align:center}
+}
+.stat4{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--rule);
+ border-radius:12px;overflow:hidden;margin-bottom:26px}
+.stat4>div{padding:17px 19px;border-right:1px solid var(--rule)}
+.stat4>div:last-child{border-right:0}
+.stat4 .k{font-size:9.5px;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);font-weight:700}
+.stat4 .v{font-size:29px;font-weight:700;color:var(--navy);letter-spacing:-.035em;margin-top:5px;
+ font-variant-numeric:tabular-nums;line-height:1.1}
+.stat4 .v em{font-style:normal;font-size:14px;color:var(--muted)}
+.stat4 .v.g{color:var(--good)}
+.stat4 .n{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+
+/* week plan */
+.wk{border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.wk .top{display:flex;align-items:center;gap:15px;padding:14px 19px;background:var(--pale2);
+ border-bottom:1px solid var(--rule)}
+.wk .num{width:30px;height:30px;border-radius:8px;background:var(--navy);color:#fff;flex:none;
+ display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.wk .ttl{font-weight:650;font-size:15.5px;color:var(--navy);flex:1}
+.wk .when{font-size:11.5px;color:var(--acc-dk);background:var(--pale);border:1px solid #DCEAF5;
+ border-radius:20px;padding:3px 11px;font-weight:600;white-space:nowrap}
+.wk .bd{padding:15px 19px;display:grid;grid-template-columns:1fr 210px;gap:22px}
+.wk .bd p{font-size:13.5px;color:var(--body);margin:0}
+.wk .bd .lab{font-size:9.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);
+ font-weight:700;margin-bottom:5px}
+.wk .gain{font-size:26px;font-weight:700;color:var(--good);letter-spacing:-.03em;line-height:1}
+.wk .gainn{font-size:11.5px;color:var(--muted);margin-top:3px}
+
+/* companies */
+.cos{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.co{border:1px solid var(--rule);border-radius:10px;padding:13px 15px;background:var(--paper)}
+.co b{display:block;font-size:14px;color:var(--navy);margin-bottom:3px}
+.co .t{font-size:11px;color:var(--muted)}
+.co .n{font-size:11.5px;color:var(--acc-dk);font-weight:600;margin-top:6px}
+.roles{border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin-top:18px}
+.roles .r{padding:13px 17px;border-bottom:1px solid var(--rule);display:flex;
+ justify-content:space-between;gap:16px;align-items:baseline}
+.roles .r:last-child{border-bottom:0}
+.roles .r b{font-size:13.5px;color:var(--navy)}
+.roles .r .m{font-size:12px;color:var(--muted)}
+.roles .r a{font-size:12px;color:var(--acc-dk);white-space:nowrap}
+.chip{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:20px;background:#F2F5F9;
+ border:1px solid var(--rule);color:var(--body);margin:3px 3px 0 0}
+
+/* demand */
+.dem{display:flex;align-items:center;gap:12px;margin-bottom:7px}
+.dem .n2{width:180px;font-size:13px;color:var(--navy);text-align:right}
+.dem .t2{flex:1;height:8px;background:#EDF1F6;border-radius:4px;overflow:hidden}
+.dem .f2{height:100%;background:var(--acc);border-radius:4px}
+.dem .p2{width:44px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.next{background:var(--goodbg);border:1px solid #CDE9D9;border-radius:12px;padding:20px 22px}
+.next h3{font-size:17px;margin-bottom:12px}
+.next ol{padding-left:20px;margin:0}
+.next li{font-size:14px;color:#14392a;margin-bottom:9px;line-height:1.55}
+.note{background:var(--warnbg);border:1px solid #F2E3BE;border-radius:10px;padding:14px 17px;
+ font-size:12.5px;color:#4d3d17;line-height:1.6;margin-top:22px}
+.foot{padding:30px 60px 44px;color:var(--muted);font-size:11.5px;line-height:1.65}
+.foot b{color:var(--navy)}
+@media print{
+ body{background:#fff} .page{max-width:none}
+ section{page-break-inside:avoid;padding:30px 34px}
+ .cover{padding:40px 34px}
+}
+@media(max-width:760px){
+ section,.cover,.foot{padding-left:22px;padding-right:22px}
+ .cover h1{font-size:31px}
+ .stat4,.cos{grid-template-columns:1fr 1fr}
+ .blk{grid-template-columns:104px 1fr 52px;gap:9px}
+ .blk .nm{font-size:11px}
+ .wk .bd{grid-template-columns:1fr}
+ .dem .n2{width:118px;font-size:11.5px}
+}
+</style></head><body><div class="page">
+
+<div class="cover">
+  <div class="brand">{ik}<b>Interview Kickstart</b> &middot; Forward Deployed Engineering</div>
+  <h1>${name?esc(name.split(' ')[0])+'&rsquo;s path to':'Your path to'} Forward Deployed Engineer</h1>
+  <p class="who">Built from <b>${esc(D.d.name)}</b>${D.yrs!=null?` with <b>${D.yrs} years</b>`:''} against
+    <b>${JOBS.jobs.length.toLocaleString()}</b> real Indian job postings, scraped 17 August 2026.
+    Every number here traces to a posting or to the programme. Nothing is estimated.</p>
+  <div class="meta">
+    <div>Prepared by<b class="pa">${esc(pa||'Interview Kickstart')}</b></div>
+    <div>Date<b>${today}</b></div>
+    <div>Target level<b>${esc(D.rung)} FDE</b></div>
+    <div>Roles at that level<b>${((D.core?D.core.n:0)+(D.adj?D.adj.n:0)).toLocaleString()}</b></div>
+  </div>
+</div>
+
+<section>
+  <p class="eyebrow">Where you stand today</p>
+  <h2>A real foundation, and a real distance left to cover</h2>
+  <p class="lede">Every FDE posting asks for a mix of eight things. Weighted by how often each one
+    actually appears, the role comes to a hundred points. Your background already carries a genuine
+    share of them. What it does not yet carry is the part that decides FDE hiring.</p>
+  <div class="stat4">
+    <div><div class="k">You hold today</div><div class="v">${D.total}<em>/100</em></div>
+      <div class="n">before you start</div></div>
+    <div><div class="k">The programme adds</div><div class="v g">+${D.totalAfter-D.total}</div>
+      <div class="n">across 23 weeks</div></div>
+    <div><div class="k">Strongest block</div>
+      <div class="v" style="font-size:19px">${esc(D.gaps.slice().sort((a,b)=>b.have/b.m-a.have/a.m)[0].nm)}</div>
+      <div class="n">${pct(D.gaps.slice().sort((a,b)=>b.have/b.m-a.have/a.m)[0].k)}% of it, and it is
+        ${D.gaps.slice().sort((a,b)=>b.have/b.m-a.have/a.m)[0].m} of the 100 points</div></div>
+    <div><div class="k">Biggest gap</div>
+      <div class="v" style="font-size:19px">${esc(D.ordered[0].nm)}</div>
+      <div class="n">where the programme moves most</div></div>
+  </div>
+  <div class="reality">
+    <b>What the ${D.total} points do, and what they do not do.</b>
+    <p>They mean you are not learning engineering from scratch, and that matters - most people
+    entering this role never had that. They do not, on their own, get you through an FDE loop.
+    ${(()=>{const g=D.ordered.filter(x=>x.add>0).slice(0,2);
+      return `The ${g.map(x=>esc(x.nm)).join(' and ')} blocks are where you sit at
+      ${g.map(x=>x.have+' of '+x.m).join(' and ')} today, and they are worth
+      ${g.reduce((a,b)=>a+b.m,0)} of the hundred between them.`;})()}
+    Those are the blocks the decomposition round, the client simulation and the
+    procurement review are built to test, and they are the reason strong engineers get rejected
+    from this role rather than from a normal one.</p>
+    <p>So read the ${D.total} as a head start on the twenty-three weeks, not as a substitute for
+    them. It is why your route is shorter than someone starting cold - not why you could skip it.</p>
+  </div>
+  <div class="viz">
+    <div class="viz-radar">${svgRadar(D)}
+      <div class="viz-cap"><span><i style="background:#2A7AB0"></i>you today</span>
+        <span><i style="background:#127A4B"></i>after the programme</span>
+        <span><i style="background:#fff;border:1px solid var(--rule2)"></i>outer ring = what the role demands</span></div>
+    </div>
+    <div class="viz-ring">${svgRing(D)}
+      <p><b>${D.total} of the 100 points</b> come from work you have already done, so you start
+      ahead. The <b>${D.totalAfter-D.total}</b> the programme adds are the decisive ones - they
+      cover what an FDE is actually screened on. The last <b>${100-D.totalAfter}</b> only come
+      from shipping real engagements after it, and nobody can hand you those.</p></div>
+  </div>
+  <div class="key">
+    <span><i style="background:var(--acc)"></i>what you hold today</span>
+    <span><i style="background:var(--good);opacity:.82"></i>what the programme adds</span>
+    <span><i style="background:#EDF1F6;border:1px solid var(--rule2)"></i>still yours to earn afterwards</span>
+  </div>
+  ${D.gaps.map(g=>`<div class="blk">
+      <div class="nm"><b>${esc(g.nm)}</b>${g.m} of 100 points</div>
+      <div class="bar"><i class="now" style="width:${g.have/g.m*100}%"></i>
+        ${g.add>0?`<i class="add" style="width:calc(${g.add/g.m*100}% - 2px)"></i>`:''}
+        <span>${g.have}${g.add>0?' &rarr; '+g.after:''}</span></div>
+      <div class="rt">${g.left>0?g.left+' open':'complete'}</div></div>`).join('')}
+  <div class="note"><b>Read this as a map, not a score.</b> It is a planning aid built from posting
+    frequency. Nobody is graded on it, and no employer uses it.</div>
+</section>
+
+<section>
+  <p class="eyebrow">What the market asks for</p>
+  <h2>At ${esc(D.rung)} level, this is what postings demand</h2>
+  <p class="lede">Share of ${esc(D.rung)} postings in the August 2026 India scrape asking for each block.
+    This is what your interviews will be built around.</p>
+  ${D.demand.map(x=>`<div class="dem"><div class="n2">${esc(x.nm)}</div>
+    <div class="t2"><div class="f2" style="width:${x.pct}%"></div></div>
+    <div class="p2">${x.pct}%</div></div>`).join('')}
+</section>
+
+<section>
+  <p class="eyebrow">Your 23 weeks</p>
+  <h2>Ordered by what it fixes for you</h2>
+  <p class="lede">Not the generic syllabus order. This is sequenced by how many points each block
+    moves for your specific background.</p>
+  <div class="viz-wide">${svgTimeline(D)}</div>
+  ${D.ordered.filter(g=>g.add>0).map((g,i)=>`
+    <div class="wk">
+      <div class="top"><div class="num">${i+1}</div>
+        <div class="ttl">${esc(g.nm)}</div>
+        <div class="when">${esc(wk[g.k]||'Across the programme')}</div></div>
+      <div class="bd">
+        <div><div class="lab">What changes</div>
+          <p>${esc((MODEL.program[g.k]||[])[2]||g.desc)}</p></div>
+        <div><div class="lab">Your movement</div>
+          <div class="gain">${g.have} &rarr; ${g.after}</div>
+          <div class="gainn">of ${g.m} points${g.left>0?`, ${g.left} still yours to earn`:', complete'}</div></div>
+      </div></div>`).join('')}
+</section>
+
+<section>
+  <p class="eyebrow">Where this leads</p>
+  <h2>Companies hiring at your level${D.cfg.city?', around '+esc(D.cfg.city):''}</h2>
+  <div class="viz-wide">${svgLadder(D)}</div>
+  <p class="lede">Pulled from live postings at ${esc(D.rung)} level. These are real openings from the
+    August 2026 scrape, not a wish list. Postings expire, so treat this as a snapshot.</p>
+  <div class="cos">
+    ${D.targets.map(t=>`<div class="co"><b>${esc(t.co)}</b>
+      <div class="t">${esc(t.tier)} &middot; ${esc(t.city)}</div>
+      <div class="n">${t.n} open role${t.n>1?'s':''} at this level</div></div>`).join('')}
+  </div>
+  ${D.sample.length?`<div class="roles">
+    ${D.sample.map(j=>`<div class="r"><div><b>${esc(j.t)}</b>
+      <div class="m">${esc(j.c)} &middot; ${esc(j.city)}</div>
+      <div>${j.s.map(s=>`<span class="chip">${esc(s)}</span>`).join('')}</div></div>
+      <a href="${esc(j.u)}" target="_blank" rel="noopener">view posting</a></div>`).join('')}
+  </div>`:''}
+</section>
+
+<section>
+  <p class="eyebrow">What you will have built</p>
+  <h2>Four things you can walk an interviewer through</h2>
+  <p class="lede">You are competing for a role you have not done yet. Deployed work is the only
+    evidence a hiring panel can actually inspect.</p>
+  ${EVID.portfolio.four.map((f,i)=>`<div class="wk">
+    <div class="top"><div class="num">${i+1}</div><div class="ttl">${esc(f[0])}</div>
+      <div class="when">${esc(f[1])}</div></div>
+    <div class="bd" style="grid-template-columns:1fr"><div>
+      <div class="lab">What it proves</div><p>${esc(f[2])}</p></div></div></div>`).join('')}
+</section>
+
+<section>
+  <p class="eyebrow">The next 30 days</p>
+  <h2>Start before the cohort does</h2>
+  <div class="next"><h3>Four things, in order</h3><ol>
+    <li><b>${esc(PRECOHORT[D.ordered[0].k]||'Close your largest gap first.')}</b></li>
+    <li>Take one project you already shipped and rewrite it as a customer outcome, not a system.
+      One page. It is the single most common gap on an FDE CV.</li>
+    <li>Search the adjacent titles as well as the FDE title: Applied AI Engineer, Solutions Engineer,
+      Customer Engineer, AI Solution Architect, FDSE. Adjacent roles outnumber FDE-titled ones about
+      three and a half to one in India.</li>
+    <li>Pick one workflow at your current company and build an AI tool that solves it end to end.
+      Your employer is your first client, and it needs nobody's permission but your manager's.</li>
+  </ol></div>
+  <div class="note"><b>What this document is not.</b> It maps skills against real postings and a
+    23-week curriculum. It is not a placement, salary or readiness promise, and no outcome is
+    guaranteed. Posting counts are a snapshot from 17 August 2026 and will change.</div>
+</section>
+
+<div class="foot">
+  <b>Interview Kickstart</b> &middot; Forward Deployed Engineering, India<br>
+  Built from ${JOBS.jobs.length.toLocaleString()} unique Indian job postings scraped 17 August 2026,
+  and the published FDE curriculum. Every figure traces to one of those two sources.<br>
+  ${pa?`Prepared for you by <b>${esc(pa)}</b>. Questions on anything in here should go back to them.`:''}
+</div>
+</div></body></html>`;
+
+  return html;
+}
+
+function downloadArtifact(){
+  if(!window.__artifactCfg){ showToast('Build a roadmap first'); return; }
+  const {cfg,A} = window.__artifactCfg;
+  const nm = ($('#lead-name') && $('#lead-name').value || '').trim();
+  const html = buildArtifact(cfg, A, nm);
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'FDE-Roadmap' + (nm ? '-' + nm.trim().replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'') : '')
+               + '.html';
+  a.click(); URL.revokeObjectURL(a.href);
+  logEvent('artifact', (nm||'unnamed') + ' - ' + DOM[cfg.dom].short);
+  showToast('Roadmap downloaded - open it and hand it over');
+}
+function previewArtifact(){
+  if(!window.__artifactCfg){ showToast('Build a roadmap first'); return; }
+  const {cfg,A} = window.__artifactCfg;
+  const nm = ($('#lead-name') && $('#lead-name').value || '').trim();
+  const w = window.open('', '_blank');
+  if(!w){ showToast('Allow pop-ups to preview'); return; }
+  w.document.write(buildArtifact(cfg, A, nm)); w.document.close();
+  logEvent('artifact', 'previewed - ' + (nm||'unnamed'));
+}
 
 /* =====================================================================
    SECTION COLLAPSE
