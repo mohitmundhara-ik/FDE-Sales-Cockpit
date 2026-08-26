@@ -26,6 +26,14 @@ That page means the gate is installed and working - it refused to serve the cock
 because it cannot verify anyone yet. Set the four variables below and **redeploy**;
 Vercel does not apply new environment variables to an existing deployment.
 
+## Vercel project settings
+
+Import as **Framework Preset: Other**. No build command, no install step.
+Vercel serves `public/` as the static root, turns `api/*.ts` into Edge Functions and
+picks up `middleware.ts` automatically. The helper code is inlined in each entry point
+rather than shared from `lib/`, so there are no cross-directory imports for the bundler
+to resolve.
+
 ## Deploy
 
 1. **Google Cloud Console** - APIs & Services - Credentials - Create OAuth client ID
