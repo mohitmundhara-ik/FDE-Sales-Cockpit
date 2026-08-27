@@ -26,6 +26,32 @@ That page means the gate is installed and working - it refused to serve the cock
 because it cannot verify anyone yet. Set the four variables below and **redeploy**;
 Vercel does not apply new environment variables to an existing deployment.
 
+
+## Every file, and what it does
+
+| File | Purpose | Deployed |
+|---|---|---|
+| `public/index.html` | The cockpit. This is the only page served. | yes |
+| `middleware.ts` | The gate. Runs in front of every path; serves nothing without a valid session. Also renders the setup page when environment variables are missing. | yes |
+| `api/auth/login.ts` | Starts Google OAuth. | yes |
+| `api/auth/callback.ts` | Verifies the identity, enforces the domain allow-list, issues the session cookie. | yes |
+| `api/auth/logout.ts` | Clears the session. | yes |
+| `api/me.ts` | Answers the cockpit on load so it can skip its own sign-in and use the verified identity. | yes |
+| `vercel.json` | Pins `outputDirectory` to `public`, sets security headers. | config |
+| `tsconfig.json` · `package.json` | Type-checking only. No build step. | config |
+| `.vercelignore` | Keeps `tools/` out of the build. | config |
+| `.env.example` | Template for the four variables. Never commit real values. | no |
+| `tools/regen_jobs.py` | Rebuilds the job dataset from a fresh scrape. Run locally. | no |
+
+**There is no `lib/` folder.** The session helpers are inlined into each entry point
+on purpose: Vercel bundles middleware and each `/api` route separately, and
+cross-directory imports are a common cause of module-not-found on non-framework
+projects.
+
+**Delete any `index.html` at the repo root.** Two index files is a trap - `public/`
+currently wins because `outputDirectory` says so, but a stray root file will confuse
+anyone reading the repo later.
+
 ## Vercel project settings
 
 Import as **Framework Preset: Other**. No build command, no install step.
